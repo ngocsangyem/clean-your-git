@@ -1,0 +1,36 @@
+{
+  "name": "branch-cleanup-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Git branch cleanup tool - CLI and Web versions",
+  "type": "module",
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "scripts": {
+    "dev:cli": "pnpm --filter @branch-cleanup/cli dev",
+    "dev:api": "pnpm --filter @branch-cleanup/api dev",
+    "dev:web": "pnpm --filter @branch-cleanup/web dev",
+    "build": "pnpm -r build",
+    "build:core": "pnpm --filter @branch-cleanup/core build",
+    "build:cli": "pnpm --filter @branch-cleanup/cli build",
+    "build:api": "pnpm --filter @branch-cleanup/api build",
+    "build:web": "pnpm --filter @branch-cleanup/web build",
+    "test": "pnpm -r test",
+    "test:core": "pnpm --filter @branch-cleanup/core test",
+    "test:cli": "pnpm --filter @branch-cleanup/cli test",
+    "test:api": "pnpm --filter @branch-cleanup/api test",
+    "test:web": "pnpm --filter @branch-cleanup/web test",
+    "lint": "pnpm -r lint",
+    "clean": "pnpm -r clean && rm -rf node_modules",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "@vitest/coverage-v8": "^4.0.16",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  },
+  "packageManager": "pnpm@9.15.0"
+}

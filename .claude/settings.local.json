@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python:*)",
+      "mcp__context7__resolve-library-id"
+    ]
+  }
+}
