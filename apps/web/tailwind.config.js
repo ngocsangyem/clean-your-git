@@ -4,6 +4,11 @@ export default {
     content: ['./index.html', './src/**/*.{vue,js,ts,jsx,tsx}'],
   theme: {
   	extend: {
+  		fontFamily: {
+  			heading: ['Poppins', 'sans-serif'],
+  			body: ['Open Sans', 'sans-serif'],
+  			sans: ['Open Sans', 'sans-serif']
+  		},
   		colors: {
   			primary: {
   				DEFAULT: 'hsl(var(--primary))',

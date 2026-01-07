@@ -89,19 +89,26 @@ function formatDate(dateString: string): string {
   <Card>
     <!-- Header -->
     <CardHeader>
-      <CardTitle class="flex items-center gap-2">
-        <GitBranch class="w-5 h-5" />
+      <CardTitle class="flex items-center gap-2 text-2xl font-heading">
+        <GitBranch class="w-5 h-5 text-primary" />
         Merged Branches
-        <Badge v-if="selectionCount > 0" variant="default" class="ml-2">
+        <Badge v-if="selectionCount > 0" variant="default" class="ml-auto">
           {{ selectionCount }} selected
         </Badge>
       </CardTitle>
     </CardHeader>
 
     <!-- Empty state -->
-    <CardContent v-if="branches.length === 0" class="px-6 py-12 text-center text-muted-foreground">
-      <GitBranch class="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-      <p>No merged branches found</p>
+    <CardContent v-if="branches.length === 0" class="px-6 py-16 text-center">
+      <div class="flex flex-col items-center gap-3">
+        <div class="rounded-full bg-muted p-4">
+          <GitBranch class="w-8 h-8 text-muted-foreground" />
+        </div>
+        <p class="text-muted-foreground font-medium">No merged branches found</p>
+        <p class="text-sm text-muted-foreground">
+          All branches are either unmerged or already cleaned up
+        </p>
+      </div>
     </CardContent>
 
     <!-- Table -->
@@ -109,35 +116,40 @@ function formatDate(dateString: string): string {
       <div class="overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead class="w-12">
+            <TableRow class="hover:bg-transparent">
+              <TableHead class="w-12 pl-6">
                 <Checkbox
                   :checked="isAllSelected"
                   @update:checked="toggleAll"
-                  aria-label="Select all"
+                  aria-label="Select all branches"
                 />
               </TableHead>
-              <TableHead>Branch Name</TableHead>
-              <TableHead>Last Commit</TableHead>
-              <TableHead>Date</TableHead>
+              <TableHead class="font-semibold">Branch Name</TableHead>
+              <TableHead class="font-semibold">Last Commit</TableHead>
+              <TableHead class="font-semibold">Date</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             <TableRow
               v-for="branch in branches"
               :key="branch.name"
-              class="cursor-pointer"
+              class="cursor-pointer transition-colors duration-200 hover:bg-muted/50"
               @click="toggleBranch(branch.name)"
             >
-              <TableCell @click.stop>
+              <TableCell class="pl-6" @click.stop>
                 <Checkbox
                   :checked="selectedBranches.has(branch.name)"
                   @update:checked="() => toggleBranch(branch.name)"
-                  aria-label="Select row"
+                  :aria-label="`Select ${branch.name}`"
                 />
               </TableCell>
-              <TableCell class="font-medium">{{ branch.name }}</TableCell>
-              <TableCell class="font-mono text-muted-foreground">
+              <TableCell class="font-medium">
+                <div class="flex items-center gap-2">
+                  <GitBranch class="w-4 h-4 text-muted-foreground" />
+                  {{ branch.name }}
+                </div>
+              </TableCell>
+              <TableCell class="font-mono text-sm text-muted-foreground">
                 {{ branch.lastCommitHash.substring(0, 8) }}
               </TableCell>
               <TableCell class="text-muted-foreground">
