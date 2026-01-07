@@ -7,6 +7,9 @@ export interface BranchInfo {
   lastCommitDate: string;
   lastCommitHash: string;
   isMerged: boolean;
+  createdBy?: string;
+  createdByEmail?: string;
+  createdDate?: string;
 }
 
 export interface AnalyzeResult {

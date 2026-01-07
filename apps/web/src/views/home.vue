@@ -1,15 +1,17 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { CheckCircle, XCircle, Trash2, GitBranch, GitMerge, GitPullRequest } from 'lucide-vue-next';
-import { Button } from '@/components/ui/button';
+import { GitBranch, GitMerge, GitPullRequest } from 'lucide-vue-next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import RepositoryForm from '@/components/repository-form.vue';
 import BranchTable from '@/components/branch-table.vue';
 import DeleteDialog from '@/components/delete-dialog.vue';
+import { useToast } from '@/composables/use-toast';
 import type { AnalyzeResult, DeleteResult } from '@/types';
+
+// Toast
+const { success, error } = useToast();
 
 // State
 const analyzeResult = ref<AnalyzeResult | null>(null);
@@ -20,10 +22,6 @@ const currentDryRun = ref(true);
 // Dialog state
 const isDeleteDialogOpen = ref(false);
 
-// Message state
-const successMessage = ref('');
-const errorMessage = ref('');
-
 /**
  * Handle analyze result
  */
@@ -32,14 +30,13 @@ function handleAnalyzed(result: AnalyzeResult, repoPath: string, dryRun: boolean
   selectedBranches.value = [];
   currentRepoPath.value = repoPath;
   currentDryRun.value = dryRun;
-  clearMessages();
 
   if (result.mergedBranches.length === 0) {
-    successMessage.value = 'No merged branches found to delete.';
+    success('No merged branches found to delete.');
   } else {
-    successMessage.value = `Found ${result.mergedBranches.length} merged ${
+    success(`Found ${result.mergedBranches.length} merged ${
       result.mergedBranches.length === 1 ? 'branch' : 'branches'
-    }.`;
+    }.`);
   }
 }
 
@@ -48,7 +45,6 @@ function handleAnalyzed(result: AnalyzeResult, repoPath: string, dryRun: boolean
  */
 function handleSelectionChange(branches: string[]) {
   selectedBranches.value = branches;
-  clearMessages();
 }
 
 /**
@@ -56,7 +52,7 @@ function handleSelectionChange(branches: string[]) {
  */
 function openDeleteDialog() {
   if (selectedBranches.value.length === 0) {
-    errorMessage.value = 'Please select at least one branch to delete.';
+    error('Please select at least one branch to delete.');
     return;
   }
   isDeleteDialogOpen.value = true;
@@ -70,17 +66,17 @@ function handleDeleteSuccess(result: DeleteResult) {
   const failedCount = result.failed.length;
 
   if (currentDryRun.value) {
-    successMessage.value = `Dry run: ${deletedCount} ${
+    success(`Dry run: ${deletedCount} ${
       deletedCount === 1 ? 'branch' : 'branches'
-    } would be deleted.`;
+    } would be deleted.`);
   } else {
-    successMessage.value = `Successfully deleted ${deletedCount} ${
+    success(`Successfully deleted ${deletedCount} ${
       deletedCount === 1 ? 'branch' : 'branches'
-    }.`;
+    }.`);
   }
 
   if (failedCount > 0) {
-    errorMessage.value = `${failedCount} ${failedCount === 1 ? 'branch' : 'branches'} failed to delete.`;
+    error(`${failedCount} ${failedCount === 1 ? 'branch' : 'branches'} failed to delete.`);
   }
 
   // Remove deleted branches from result
@@ -97,16 +93,7 @@ function handleDeleteSuccess(result: DeleteResult) {
  * Handle error from any component
  */
 function handleError(message: string) {
-  errorMessage.value = message;
-  successMessage.value = '';
-}
-
-/**
- * Clear all messages
- */
-function clearMessages() {
-  successMessage.value = '';
-  errorMessage.value = '';
+  error(message);
 }
 </script>
 
@@ -131,19 +118,6 @@ function clearMessages() {
 
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <!-- Messages -->
-      <div class="space-y-4 mb-8">
-        <Alert v-if="successMessage" class="border-success/20 bg-success/5">
-          <CheckCircle class="w-5 h-5 text-success" />
-          <AlertDescription class="text-success">{{ successMessage }}</AlertDescription>
-        </Alert>
-
-        <Alert v-if="errorMessage" variant="destructive">
-          <XCircle class="w-5 h-5" />
-          <AlertDescription>{{ errorMessage }}</AlertDescription>
-        </Alert>
-      </div>
-
       <!-- Repository Form -->
       <repository-form
         @analyzed="handleAnalyzed"
@@ -210,24 +184,8 @@ function clearMessages() {
         <branch-table
           :branches="analyzeResult.mergedBranches"
           @selection-change="handleSelectionChange"
+          @delete-selected="openDeleteDialog"
         />
-
-        <!-- Delete Button -->
-        <div v-if="analyzeResult.mergedBranches.length > 0" class="flex justify-end">
-          <Button
-            @click="openDeleteDialog"
-            :disabled="selectedBranches.length === 0"
-            variant="destructive"
-            size="lg"
-            class="gap-2 transition-all duration-200 hover:shadow-lg"
-          >
-            <Trash2 class="w-5 h-5" />
-            {{ currentDryRun ? 'Preview Deletion' : 'Delete Selected' }}
-            <Badge v-if="selectedBranches.length > 0" variant="secondary" class="ml-2">
-              {{ selectedBranches.length }}
-            </Badge>
-          </Button>
-        </div>
       </div>
     </main>
 

@@ -1,6 +1,7 @@
 import type { AnalyzeResult, BranchInfo, FilterOptions } from './types.js';
 import { GitOperations } from './git-operations.js';
 import { GitOperationError } from './errors.js';
+import pLimit from 'p-limit';
 
 /**
  * Analyzes branches and determines merge status
@@ -27,15 +28,28 @@ export class BranchAnalyzer {
         allBranches.map((branch) => this.gitOps.getBranchDetails(branch))
       );
 
-      // Check merge status for each branch
+      // Check merge status and fetch author info for each branch (parallel with limit)
+      const limit = pLimit(10); // Limit to 10 concurrent git operations
       const branchesWithMergeStatus = await Promise.all(
-        branchDetails.map(async (branch) => {
-          const isMerged = await this.gitOps.isBranchMerged(
-            branch.name,
-            targetBranch
-          );
-          return { ...branch, isMerged };
-        })
+        branchDetails.map((branch) =>
+          limit(async () => {
+            const isMerged = await this.gitOps.isBranchMerged(
+              branch.name,
+              targetBranch
+            );
+            const author = await this.gitOps.getBranchAuthor(
+              branch.name,
+              targetBranch
+            );
+            return {
+              ...branch,
+              isMerged,
+              createdBy: author.name,
+              createdByEmail: author.email,
+              createdDate: author.date,
+            } as BranchInfo;
+          })
+        )
       );
 
       // Exclude current branch and target branch from results

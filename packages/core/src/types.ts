@@ -10,6 +10,12 @@ export interface BranchInfo {
   lastCommitHash: string;
   /** Whether this branch is merged into target */
   isMerged: boolean;
+  /** Author name (creator of first commit on branch) */
+  createdBy?: string;
+  /** Author email */
+  createdByEmail?: string;
+  /** Date of first commit on branch (ISO format) */
+  createdDate?: string;
 }
 
 /**

@@ -138,6 +138,61 @@ export class GitOperations {
   }
 
   /**
+   * Get the author of first commit on branch
+   * Uses merge-base to find branch point, then first commit after
+   * @param branch - Branch name
+   * @param targetBranch - Target branch to compare against
+   * @returns Author information (name, email, date)
+   */
+  async getBranchAuthor(
+    branch: string,
+    targetBranch: string
+  ): Promise<{ name: string; email: string; date: string }> {
+    try {
+      // Find merge base (where branch diverged)
+      const mergeBase = await this.git.raw([
+        'merge-base',
+        targetBranch,
+        branch,
+      ]);
+
+      // Get first commit on branch after merge base
+      const result = await this.git.raw([
+        'log',
+        '--format=%an|%ae|%aI',
+        '--reverse',
+        `${mergeBase.trim()}..${branch}`,
+        '-1',
+      ]);
+
+      if (!result.trim()) {
+        // Fallback: use last commit author
+        const fallback = await this.git.raw([
+          'log',
+          '-1',
+          '--format=%an|%ae|%aI',
+          branch,
+        ]);
+        const [name, email, date] = fallback.trim().split('|');
+        return {
+          name: name || 'Unknown',
+          email: email || '',
+          date: date || '',
+        };
+      }
+
+      const [name, email, date] = result.trim().split('|');
+      return {
+        name: name || 'Unknown',
+        email: email || '',
+        date: date || '',
+      };
+    } catch {
+      return { name: 'Unknown', email: '', date: '' };
+    }
+  }
+
+  /**
    * Get repository path
    */
   getRepoPath(): string {
